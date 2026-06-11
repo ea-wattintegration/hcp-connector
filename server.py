@@ -27,6 +27,7 @@ import os
 import time
 import requests
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 BASE = "https://api.housecallpro.com"
 API_KEY = os.environ.get("HCP_API_KEY", "")
@@ -36,7 +37,14 @@ AMOUNTS_IN_CENTS = os.environ.get("AMOUNTS_IN_CENTS", "true").lower() != "false"
 HEADERS = {"Authorization": f"Token {API_KEY}", "Accept": "application/json"}
 
 # The secret becomes the URL path, e.g. https://your-app.onrender.com/<SECRET>
-mcp = FastMCP("Housecall Pro", streamable_http_path=f"/{SECRET}")
+# DNS-rebinding host checking is turned off because this server runs on a public
+# host (Render) and is reached by Anthropic's cloud, not a browser on a local
+# network. Our protection is the secret URL path plus HTTPS.
+mcp = FastMCP(
+    "Housecall Pro",
+    streamable_http_path=f"/{SECRET}",
+    transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
+)
 
 
 # ----------------------------------------------------------------- helpers
